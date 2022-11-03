@@ -57,8 +57,8 @@ pub fn move_player(
     game.player.position.y = new_y_position.clamp(-WINDOW_HEIGH / 2.0, WINDOW_HEIGH / 2.0);
 
     // update on screen
-    *transforms.get_mut(game.player.entity.unwrap()).unwrap() = Transform {
-        translation: Vec3::new(game.player.position.x, game.player.position.y, 0.0),
-        ..default()
-    };
+    transforms
+        .get_mut(game.player.entity.unwrap())
+        .unwrap()
+        .translation = Vec3::new(game.player.position.x, game.player.position.y, 0.0);
 }
