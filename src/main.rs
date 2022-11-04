@@ -19,7 +19,7 @@ fn main() {
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(player::move_player)
-        // .add_system(birds::move_birds)
+        .add_system(birds::move_birds)
         .run();
 }
 
