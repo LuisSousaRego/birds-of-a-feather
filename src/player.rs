@@ -53,8 +53,8 @@ pub fn move_player(
     let new_x_position = game.player.position.x + horizontal_direction * PLAYER_SPEED * TIME_STEP;
     let new_y_position = game.player.position.y + vertical_direction * PLAYER_SPEED * TIME_STEP;
 
-    game.player.position.x = new_x_position.clamp(-WINDOW_WIDTH / 2.0, WINDOW_WIDTH / 2.0);
-    game.player.position.y = new_y_position.clamp(-WINDOW_HEIGH / 2.0, WINDOW_HEIGH / 2.0);
+    game.player.position.x = new_x_position.clamp(LEFT_BORDER, RIGHT_BORDER);
+    game.player.position.y = new_y_position.clamp(BOTTOM_BORDER, TOP_BORDER);
 
     // update on screen
     transforms
