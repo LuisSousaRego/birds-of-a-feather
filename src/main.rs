@@ -36,5 +36,5 @@ fn setup(mut commands: Commands, mut windows: ResMut<Windows>, mut game: ResMut<
     player::create_player(&mut commands, &mut game);
 
     // create birds
-    birds::create_birds(400, &mut commands, &mut game);
+    birds::create_birds(1000, &mut commands, &mut game);
 }

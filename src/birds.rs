@@ -12,43 +12,39 @@ pub struct Bird {
 pub fn create_birds(n: usize, commands: &mut Commands, game: &mut ResMut<Game>) {
     let mut rng = rand::thread_rng();
     for _ in 0..n {
-        let x_rand;
-        if rand::random() {
-            // left bound
-            x_rand = rng.gen_range(LEFT_BORDER - 20.0..LEFT_BORDER);
-        } else {
-            // right bound
-            x_rand = rng.gen_range(RIGHT_BORDER..RIGHT_BORDER + 20.0);
-        }
+        let side: u8 = rng.gen_range(0..4);
+        let spawn_position = match side {
+            // top side
+            0 => vec2(
+                rng.gen_range(LEFT_BORDER - WINDOW_PADDING..RIGHT_BORDER + WINDOW_PADDING),
+                rng.gen_range(TOP_BORDER..TOP_BORDER + WINDOW_PADDING),
+            ),
+            // right side
+            1 => vec2(
+                rng.gen_range(RIGHT_BORDER..RIGHT_BORDER + WINDOW_PADDING),
+                rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..TOP_BORDER + WINDOW_PADDING),
+            ),
+            // bottom side
+            2 => vec2(
+                rng.gen_range(LEFT_BORDER - WINDOW_PADDING..RIGHT_BORDER + WINDOW_PADDING),
+                rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..BOTTOM_BORDER),
+            ),
+            // left side
+            3 => vec2(
+                rng.gen_range(LEFT_BORDER - WINDOW_PADDING..LEFT_BORDER),
+                rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..TOP_BORDER + WINDOW_PADDING),
+            ),
+            _ => vec2(LEFT_BORDER - WINDOW_PADDING, 0.0),
+        };
 
-        let y_rand;
-        if rand::random() {
-            // bottom bound
-            y_rand = rng.gen_range(BOTTOM_BORDER - 20.0..BOTTOM_BORDER);
-        } else {
-            // top bound
-            y_rand = rng.gen_range(TOP_BORDER..TOP_BORDER + 20.0);
-        }
+        let spawn_velocity = vec2(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize();
 
-        let position = vec2(x_rand, y_rand);
-        let velocity = vec2(
-            game.player.position.x - position.x,
-            game.player.position.y - position.y,
-        );
-        // let position = vec2(
-        //     rng.gen_range(LEFT_BORDER..RIGHT_BORDER),
-        //     rng.gen_range(BOTTOM_BORDER..TOP_BORDER),
-        // );
-        // let velocity = vec2(
-        //     rng.gen_range(LEFT_BORDER..RIGHT_BORDER),
-        //     rng.gen_range(BOTTOM_BORDER..TOP_BORDER),
-        // );
         let new_bird = Bird {
             entity: Some(
                 commands
                     .spawn_bundle(SpriteBundle {
                         transform: Transform {
-                            translation: Vec3::new(position.x, position.y, 0.0),
+                            translation: Vec3::new(spawn_position.x, spawn_position.y, 0.0),
                             scale: BIRD_SCALE,
                             ..default()
                         },
@@ -60,8 +56,8 @@ pub fn create_birds(n: usize, commands: &mut Commands, game: &mut ResMut<Game>) 
                     })
                     .id(),
             ),
-            position,
-            velocity,
+            position: spawn_position,
+            velocity: spawn_velocity,
         };
 
         game.flock.push(new_bird);
@@ -74,27 +70,23 @@ pub fn move_birds(mut game: ResMut<Game>, mut transforms: Query<&mut Transform>)
         .flock
         .iter()
         .map(|bird| {
+            let mut velocity = bird.velocity;
+
             let local_flock = get_local_flockmates(bird, &game.flock);
 
             let separation = separation(bird, &local_flock) * BIRD_SEPARATION_FACTOR;
-            println!("separation: {}", separation);
             let alignment = alignment(bird, &local_flock) * BIRD_ALIGNMENT_FACTOR;
-            println!("alignment: {}", alignment);
             let cohesion = cohesion(bird, &local_flock) * BIRD_COHESION_FACTOR;
-            println!("cohesion: {}", cohesion);
-            let attack = (game.player.position - bird.position) * BIRD_ATTACK_FACTOR;
+            let attack = (game.player.position - bird.position).normalize() * BIRD_ATTACK_FACTOR;
 
-            let mut velocity =
-                bird.velocity + (separation + alignment + cohesion + attack) * TIME_STEP;
+            velocity = velocity + (separation + alignment + cohesion + attack) * TIME_STEP;
 
             // limit velocity to a max
             velocity = velocity.clamp_length_max(BIRD_MAX_SPEED * TIME_STEP);
 
-            let position = bird.position + velocity * 0.5;
-
             Bird {
                 entity: bird.entity,
-                position,
+                position: bird.position + velocity,
                 velocity,
             }
         })
@@ -113,31 +105,35 @@ pub fn move_birds(mut game: ResMut<Game>, mut transforms: Query<&mut Transform>)
 }
 
 fn separation(bird: &Bird, flockmates: &Vec<Bird>) -> Vec2 {
+    if flockmates.len() == 0 {
+        return vec2(0.0, 0.0);
+    }
     let mut v = Vec2::new(0.0, 0.0);
     for mate in flockmates.iter() {
-        v = v + (bird.position - mate.position)
+        v = v + (bird.position - mate.position);
     }
-    v
+    v / flockmates.len() as f32
 }
 fn alignment(bird: &Bird, flockmates: &Vec<Bird>) -> Vec2 {
     if flockmates.len() == 0 {
-        return Vec2::new(0.0, 0.0);
+        return vec2(0.0, 0.0);
     }
-    let mut local_flock_velocity = Vec2::new(0.0, 0.0);
+
+    let mut local_flock_velocity = bird.velocity;
     for mate in flockmates.iter() {
-        local_flock_velocity = (local_flock_velocity + mate.velocity) / flockmates.len() as f32;
+        local_flock_velocity = local_flock_velocity + mate.velocity;
     }
-    local_flock_velocity
+    local_flock_velocity / (flockmates.len() + 1) as f32
 }
 fn cohesion(bird: &Bird, flockmates: &Vec<Bird>) -> Vec2 {
     if flockmates.len() == 0 {
-        return Vec2::new(0.0, 0.0);
+        return vec2(0.0, 0.0);
     }
-    let mut local_flock_center = Vec2::new(0.0, 0.0);
+    let mut local_flock_center = bird.position / (flockmates.len() + 1) as f32;
     for mate in flockmates.iter() {
-        local_flock_center = local_flock_center + mate.position;
+        local_flock_center = local_flock_center + mate.position / (flockmates.len() + 1) as f32;
     }
-    (local_flock_center / (flockmates.len() as f32)) - bird.position
+    local_flock_center - bird.position
 }
 
 fn get_local_flockmates(bird: &Bird, flock: &Vec<Bird>) -> Vec<Bird> {
