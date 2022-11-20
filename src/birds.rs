@@ -10,35 +10,35 @@ pub struct Bird {
 }
 
 pub fn create_birds(rng: &mut ThreadRng, commands: &mut Commands, game: &mut ResMut<Game>) {
-    // let side: u8 = rng.gen_range(0..4);
-    // let spawn_position = match side {
-    //     // top side
-    //     0 => vec2(
-    //         rng.gen_range(LEFT_BORDER - WINDOW_PADDING..RIGHT_BORDER + WINDOW_PADDING),
-    //         rng.gen_range(TOP_BORDER..TOP_BORDER + WINDOW_PADDING),
-    //     ),
-    //     // right side
-    //     1 => vec2(
-    //         rng.gen_range(RIGHT_BORDER..RIGHT_BORDER + WINDOW_PADDING),
-    //         rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..TOP_BORDER + WINDOW_PADDING),
-    //     ),
-    //     // bottom side
-    //     2 => vec2(
-    //         rng.gen_range(LEFT_BORDER - WINDOW_PADDING..RIGHT_BORDER + WINDOW_PADDING),
-    //         rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..BOTTOM_BORDER),
-    //     ),
-    //     // left side
-    //     3 => vec2(
-    //         rng.gen_range(LEFT_BORDER - WINDOW_PADDING..LEFT_BORDER),
-    //         rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..TOP_BORDER + WINDOW_PADDING),
-    //     ),
-    //     _ => vec2(LEFT_BORDER - WINDOW_PADDING, 0.0),
-    // };
+    let side: u8 = rng.gen_range(0..4);
+    let spawn_position = match side {
+        // top side
+        0 => vec2(
+            rng.gen_range(LEFT_BORDER - WINDOW_PADDING..RIGHT_BORDER + WINDOW_PADDING),
+            rng.gen_range(TOP_BORDER..TOP_BORDER + WINDOW_PADDING),
+        ),
+        // right side
+        1 => vec2(
+            rng.gen_range(RIGHT_BORDER..RIGHT_BORDER + WINDOW_PADDING),
+            rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..TOP_BORDER + WINDOW_PADDING),
+        ),
+        // bottom side
+        2 => vec2(
+            rng.gen_range(LEFT_BORDER - WINDOW_PADDING..RIGHT_BORDER + WINDOW_PADDING),
+            rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..BOTTOM_BORDER),
+        ),
+        // left side
+        3 => vec2(
+            rng.gen_range(LEFT_BORDER - WINDOW_PADDING..LEFT_BORDER),
+            rng.gen_range(BOTTOM_BORDER - WINDOW_PADDING..TOP_BORDER + WINDOW_PADDING),
+        ),
+        _ => vec2(LEFT_BORDER - WINDOW_PADDING, 0.0),
+    };
 
-    let spawn_position = vec2(
-        rng.gen_range(LEFT_BORDER..RIGHT_BORDER),
-        rng.gen_range(BOTTOM_BORDER..TOP_BORDER),
-    );
+    // let spawn_position = vec2(
+    //     rng.gen_range(LEFT_BORDER..RIGHT_BORDER),
+    //     rng.gen_range(BOTTOM_BORDER..TOP_BORDER),
+    // );
     let spawn_velocity = vec2(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize();
 
     let new_bird = Bird {
@@ -76,28 +76,28 @@ pub fn move_birds(time: Res<Time>, mut game: ResMut<Game>, mut transforms: Query
             let separation = separation(bird, &local_flock) * BIRD_SEPARATION_FACTOR;
             let alignment = alignment(bird, &local_flock) * BIRD_ALIGNMENT_FACTOR;
             let cohesion = cohesion(bird, &local_flock) * BIRD_COHESION_FACTOR;
-            let attack = attack(bird, &game.player) * BIRD_ATTACK_FACTOR;
+            let recall = recall(bird) * BIRD_RECALL_FACTOR;
 
-            let acceleration = (separation + alignment + cohesion)
+            let acceleration = (separation + alignment + cohesion + recall)
                 .clamp_length_max(BIRD_MAX_ACCELERATION)
                 * time.delta_seconds();
 
             let velocity = bird.velocity + acceleration;
-            let mut position = bird.position + velocity;
+            let position = bird.position + velocity;
 
             // for test purpose
-            if position.x >= RIGHT_BORDER {
-                position.x = LEFT_BORDER;
-            }
-            if position.x < LEFT_BORDER {
-                position.x = RIGHT_BORDER;
-            }
-            if position.y >= TOP_BORDER {
-                position.y = BOTTOM_BORDER;
-            }
-            if position.y < BOTTOM_BORDER {
-                position.y = TOP_BORDER;
-            }
+            // if position.x >= RIGHT_BORDER {
+            //     position.x = LEFT_BORDER;
+            // }
+            // if position.x < LEFT_BORDER {
+            //     position.x = RIGHT_BORDER;
+            // }
+            // if position.y >= TOP_BORDER {
+            //     position.y = BOTTOM_BORDER;
+            // }
+            // if position.y < BOTTOM_BORDER {
+            //     position.y = TOP_BORDER;
+            // }
 
             Bird {
                 entity: bird.entity,
@@ -164,8 +164,23 @@ fn cohesion(bird: &Bird, flockmates: &Vec<Bird>) -> Vec2 {
     v.normalize_or_zero() * BIRD_MAX_SPEED - bird.velocity //steering
 }
 
-fn attack(bird: &Bird, player: &Player) -> Vec2 {
-    (player.position - bird.position).normalize_or_zero() * BIRD_MAX_SPEED - bird.velocity
+fn recall(bird: &Bird) -> Vec2 {
+    let mut v = vec2(0.0, 0.0);
+    let recall_force = 3.0;
+
+    if bird.position.x > RIGHT_BORDER - WINDOW_PADDING {
+        v.x = -recall_force;
+    }
+    if bird.position.x < LEFT_BORDER + WINDOW_PADDING {
+        v.x = recall_force;
+    }
+    if bird.position.y > TOP_BORDER - WINDOW_PADDING {
+        v.y = -recall_force;
+    }
+    if bird.position.y < BOTTOM_BORDER + WINDOW_PADDING {
+        v.y = recall_force;
+    }
+    v
 }
 
 fn get_local_flockmates(bird: &Bird, flock: &Vec<Bird>) -> Vec<Bird> {

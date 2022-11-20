@@ -8,7 +8,7 @@ pub const BOTTOM_BORDER: f32 = -WINDOW_HEIGH / 2.0;
 pub const LEFT_BORDER: f32 = -WINDOW_WIDTH / 2.0;
 pub const RIGHT_BORDER: f32 = WINDOW_WIDTH / 2.0;
 
-pub const WINDOW_PADDING: f32 = 20.0;
+pub const WINDOW_PADDING: f32 = 100.0;
 
 pub const BACKGROUND_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
@@ -21,10 +21,10 @@ pub const BIRD_COLOR: Color = Color::rgb(0.3, 0.7, 0.3);
 
 pub const BIRD_VIEW_DISTANCE: f32 = 50.0;
 
-pub const BIRD_SEPARATION_FACTOR: f32 = 1.0;
+pub const BIRD_SEPARATION_FACTOR: f32 = 1.1;
 pub const BIRD_ALIGNMENT_FACTOR: f32 = 1.0;
 pub const BIRD_COHESION_FACTOR: f32 = 1.0;
-pub const BIRD_ATTACK_FACTOR: f32 = 1.0;
+pub const BIRD_RECALL_FACTOR: f32 = 1.0;
 
 pub const BIRD_MAX_SPEED: f32 = 8.0;
 pub const BIRD_MAX_ACCELERATION: f32 = 50.0;
