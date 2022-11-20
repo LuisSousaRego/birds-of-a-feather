@@ -36,5 +36,8 @@ fn setup(mut commands: Commands, mut windows: ResMut<Windows>, mut game: ResMut<
     player::create_player(&mut commands, &mut game);
 
     // create birds
-    birds::create_birds(1000, &mut commands, &mut game);
+    let mut rng = rand::thread_rng();
+    for _ in 0..100 {
+        birds::create_birds(&mut rng, &mut commands, &mut game);
+    }
 }
