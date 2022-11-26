@@ -1,6 +1,6 @@
-use crate::{constants::*, player::Player, Game};
+use crate::{constants::*, BirdSpawnTimer, Game};
 use bevy::{math::vec2, prelude::*, render::render_resource::encase::rts_array::Length};
-use rand::{rngs::ThreadRng, Rng};
+use rand::Rng;
 
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Bird {
@@ -9,7 +9,8 @@ pub struct Bird {
     velocity: Vec2,
 }
 
-pub fn create_birds(rng: &mut ThreadRng, commands: &mut Commands, game: &mut ResMut<Game>) {
+pub fn create_mini_flock(commands: &mut Commands, game: &mut ResMut<Game>) {
+    let mut rng = rand::thread_rng();
     let side: u8 = rng.gen_range(0..4);
     let spawn_position = match side {
         // top side
@@ -35,37 +36,50 @@ pub fn create_birds(rng: &mut ThreadRng, commands: &mut Commands, game: &mut Res
         _ => vec2(LEFT_BORDER - WINDOW_PADDING, 0.0),
     };
 
-    // let spawn_position = vec2(
-    //     rng.gen_range(LEFT_BORDER..RIGHT_BORDER),
-    //     rng.gen_range(BOTTOM_BORDER..TOP_BORDER),
-    // );
     let spawn_velocity = vec2(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize();
 
-    let new_bird = Bird {
-        entity: Some(
-            commands
-                .spawn_bundle(SpriteBundle {
-                    transform: Transform {
-                        translation: Vec3::new(spawn_position.x, spawn_position.y, 0.0),
-                        scale: BIRD_SCALE,
-                        ..default()
-                    },
-                    sprite: Sprite {
-                        color: BIRD_COLOR,
-                        ..default()
-                    },
-                    ..default()
-                })
-                .id(),
-        ),
-        position: spawn_position,
-        velocity: spawn_velocity,
-    };
+    for _ in 0..MINI_FLOCK_SIZE {
+        let bird_spawn_position = Vec2::new(
+            spawn_position.x + rng.gen_range(-MINI_FLOCK_PADDING..MINI_FLOCK_PADDING),
+            spawn_position.y + rng.gen_range(-MINI_FLOCK_PADDING..MINI_FLOCK_PADDING),
+        );
 
-    game.flock.push(new_bird);
+        let new_bird = Bird {
+            entity: Some(
+                commands
+                    .spawn(SpriteBundle {
+                        transform: Transform {
+                            translation: Vec3::new(
+                                bird_spawn_position.x,
+                                bird_spawn_position.y,
+                                0.0,
+                            ),
+                            scale: BIRD_SCALE,
+                            ..default()
+                        },
+                        sprite: Sprite {
+                            color: BIRD_COLOR,
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .id(),
+            ),
+            position: bird_spawn_position,
+            velocity: spawn_velocity,
+        };
+
+        game.flock.push(new_bird);
+    }
 }
 
-pub fn move_birds(time: Res<Time>, mut game: ResMut<Game>, mut transforms: Query<&mut Transform>) {
+pub fn update_birds(
+    time: Res<Time>,
+    mut game: ResMut<Game>,
+    mut timer: ResMut<BirdSpawnTimer>,
+    mut commands: Commands,
+    mut transforms: Query<&mut Transform>,
+) {
     // calculate next velocity and position
     let new_flock = game
         .flock
@@ -85,20 +99,6 @@ pub fn move_birds(time: Res<Time>, mut game: ResMut<Game>, mut transforms: Query
             let velocity = bird.velocity + acceleration;
             let position = bird.position + velocity;
 
-            // for test purpose
-            // if position.x >= RIGHT_BORDER {
-            //     position.x = LEFT_BORDER;
-            // }
-            // if position.x < LEFT_BORDER {
-            //     position.x = RIGHT_BORDER;
-            // }
-            // if position.y >= TOP_BORDER {
-            //     position.y = BOTTOM_BORDER;
-            // }
-            // if position.y < BOTTOM_BORDER {
-            //     position.y = TOP_BORDER;
-            // }
-
             Bird {
                 entity: bird.entity,
                 position: position,
@@ -115,6 +115,11 @@ pub fn move_birds(time: Res<Time>, mut game: ResMut<Game>, mut transforms: Query
             .get_mut(bird.entity.unwrap())
             .unwrap()
             .translation = Vec3::new(bird.position.x, bird.position.y, 0.0);
+    }
+
+    // add new bird
+    if timer.0.tick(time.delta()).just_finished() {
+        create_mini_flock(&mut commands, &mut game)
     }
 }
 

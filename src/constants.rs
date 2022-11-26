@@ -19,6 +19,11 @@ pub const PLAYER_SPEED: f32 = 300.0;
 pub const BIRD_SCALE: Vec3 = Vec3::new(5.0, 5.0, 0.0);
 pub const BIRD_COLOR: Color = Color::rgb(0.3, 0.7, 0.3);
 
+pub const MINI_FLOCK_SIZE: usize = 5;
+pub const MINI_FLOCK_PADDING: f32 = 10.0;
+
+pub const BIRD_SPAWN_SECONDS: f32 = 5.0;
+
 pub const BIRD_VIEW_DISTANCE: f32 = 50.0;
 
 pub const BIRD_SEPARATION_FACTOR: f32 = 1.1;

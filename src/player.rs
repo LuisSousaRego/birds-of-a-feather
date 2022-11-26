@@ -10,7 +10,7 @@ pub struct Player {
 pub fn create_player(commands: &mut Commands, game: &mut ResMut<Game>) {
     game.player.entity = Some(
         commands
-            .spawn_bundle(SpriteBundle {
+            .spawn(SpriteBundle {
                 transform: Transform {
                     translation: Vec3::new(game.player.position.x, game.player.position.y, 0.0),
                     scale: PLAYER_SCALE,
