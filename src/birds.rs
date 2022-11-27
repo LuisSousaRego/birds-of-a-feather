@@ -1,11 +1,13 @@
 use crate::{constants::*, BirdSpawnTimer, Game};
-use bevy::{math::vec2, prelude::*, render::render_resource::encase::rts_array::Length};
+use bevy::{
+    math::vec2, prelude::*, render::render_resource::encase::rts_array::Length,
+};
 use rand::Rng;
 
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Bird {
-    entity: Option<Entity>,
-    position: Vec2,
+    pub entity: Option<Entity>,
+    pub position: Vec2,
     velocity: Vec2,
 }
 
@@ -48,17 +50,9 @@ pub fn create_mini_flock(commands: &mut Commands, game: &mut ResMut<Game>) {
             entity: Some(
                 commands
                     .spawn(SpriteBundle {
-                        transform: Transform {
-                            translation: Vec3::new(
-                                bird_spawn_position.x,
-                                bird_spawn_position.y,
-                                0.0,
-                            ),
-                            scale: BIRD_SCALE,
-                            ..default()
-                        },
                         sprite: Sprite {
-                            color: BIRD_COLOR,
+                            color: Color::hex(BIRD_COLOR_HEX).unwrap(),
+                            custom_size: Some(Vec2::new(BIRD_SIZE, BIRD_SIZE)),
                             ..default()
                         },
                         ..default()
@@ -111,10 +105,11 @@ pub fn update_birds(
 
     // update on screen
     for bird in game.flock.iter_mut() {
+        // position
         transforms
             .get_mut(bird.entity.unwrap())
             .unwrap()
-            .translation = Vec3::new(bird.position.x, bird.position.y, 0.0);
+            .translation = Vec3::new(bird.position.x, bird.position.y, 1.0);
     }
 
     // add new bird

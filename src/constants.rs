@@ -10,14 +10,15 @@ pub const RIGHT_BORDER: f32 = WINDOW_WIDTH / 2.0;
 
 pub const WINDOW_PADDING: f32 = 100.0;
 
-pub const BACKGROUND_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
+pub const BACKGROUND_COLOR_HEX: &str = "fdf6e3";
 
-pub const PLAYER_SCALE: Vec3 = Vec3::new(20.0, 20.0, 0.0);
-pub const PLAYER_COLOR: Color = Color::rgb(0.3, 0.3, 0.7);
+pub const PLAYER_SIZE: f32 = 15.0;
+pub const PLAYER_SCALE: Vec3 = Vec3::new(PLAYER_SIZE, PLAYER_SIZE, 0.0);
+pub const PLAYER_COLOR_HEX: &str = "cb4b16";
 pub const PLAYER_SPEED: f32 = 300.0;
 
-pub const BIRD_SCALE: Vec3 = Vec3::new(5.0, 5.0, 0.0);
-pub const BIRD_COLOR: Color = Color::rgb(0.3, 0.7, 0.3);
+pub const BIRD_SIZE: f32 = 5.0;
+pub const BIRD_COLOR_HEX: &str = "2aa198";
 
 pub const MINI_FLOCK_SIZE: usize = 5;
 pub const MINI_FLOCK_PADDING: f32 = 10.0;
@@ -32,4 +33,9 @@ pub const BIRD_COHESION_FACTOR: f32 = 1.0;
 pub const BIRD_RECALL_FACTOR: f32 = 1.0;
 
 pub const BIRD_MAX_SPEED: f32 = 8.0;
-pub const BIRD_MAX_ACCELERATION: f32 = 50.0;
+pub const BIRD_MAX_ACCELERATION: f32 = 30.0;
+
+pub const TEXT_COLOR_HEX: &str = "93a1a1";
+pub const SCORE_COLOR_HEX: &str = "b58900";
+
+pub const FONT_SIZE: f32 = 30.0;

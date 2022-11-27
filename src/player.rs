@@ -1,23 +1,28 @@
 use crate::{constants::*, Game};
-use bevy::{math::vec2, prelude::*};
+use bevy::{math::vec2, prelude::*, sprite::MaterialMesh2dBundle};
 
 #[derive(Default, Debug)]
 pub struct Player {
-    entity: Option<Entity>,
+    pub entity: Option<Entity>,
     pub position: Vec2,
 }
 
-pub fn create_player(commands: &mut Commands, game: &mut ResMut<Game>) {
+pub fn create_player(
+    commands: &mut Commands,
+    game: &mut ResMut<Game>,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+) {
     game.player.entity = Some(
         commands
-            .spawn(SpriteBundle {
+            .spawn(MaterialMesh2dBundle {
+                mesh: meshes
+                    .add(shape::Circle::new(PLAYER_SIZE / 20.0).into())
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::hex(PLAYER_COLOR_HEX).unwrap())),
                 transform: Transform {
                     translation: Vec3::new(game.player.position.x, game.player.position.y, 0.0),
                     scale: PLAYER_SCALE,
-                    ..default()
-                },
-                sprite: Sprite {
-                    color: PLAYER_COLOR,
                     ..default()
                 },
                 ..default()
