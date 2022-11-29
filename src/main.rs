@@ -71,6 +71,5 @@ fn setup(
         }),
     ]),));
 
-    let music = asset_server.load("audio/birds-of-a-feather.ogg");
-    audio.play(music);
+    audio.play(asset_server.load("audio/birds-of-a-feather.ogg"));
 }
