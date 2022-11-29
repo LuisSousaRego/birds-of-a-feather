@@ -41,6 +41,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    audio: Res<Audio>,
 ) {
     // create camera
     commands.spawn(Camera2dBundle::default());
@@ -69,4 +70,7 @@ fn setup(
             color: Color::hex(SCORE_COLOR_HEX).unwrap(),
         }),
     ]),));
+
+    let music = asset_server.load("audio/birds-of-a-feather.ogg");
+    audio.play(music);
 }
